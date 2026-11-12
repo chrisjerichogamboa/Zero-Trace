@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator Vault</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: {
+                            900: '#0F172A',
+                            800: '#1E293B',
+                            700: '#334155',
+                            600: '#475569',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Glassmorphism & Custom Effects */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        .glass-btn:active {
+            transform: scale(0.96);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- Header / Nav -->
+    <header class="w-full p-4 border-b border-slate-800/60 bg-slate-900/50 backdrop-blur flex justify-between items-center z-10">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <i data-lucide="calculator" class="w-5 h-5 text-white"></i>
+            </div>
+            <span class="font-bold text-lg tracking-wide text-slate-200" id="headerTitle">Calculator</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <!-- Reset / Lock button (Visible only when in Vault) -->
+            <button id="lockVaultBtn" class="hidden flex items-center gap-2 bg-rose-600/20 text-rose-400 hover:bg-rose-600/30 border border-rose-500/30 px-3 py-1.5 rounded-lg text-sm font-medium transition-all">
+                <i data-lucide="lock" class="w-4 h-4"></i>
+                <span>Lock Vault</span>
+            </button>
+            <!-- Passcode Settings Button (Visible only when in Vault) -->
+            <button id="settingsBtn" class="hidden flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-all">
+                <i data-lucide="key" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Set Passcode</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 flex items-center justify-center p-4 md:p-6">
+        
+        <!-- ================= CALCULATOR VIEW ================= -->
+        <div id="calculatorView" class="w-full max-w-sm glass-card rounded-3xl p-6 shadow-2xl border border-slate-700/50 transition-all duration-300">
+            <!-- Screen Display -->
+            <div class="bg-slate-950/80 rounded-2xl p-4 mb-6 border border-slate-800/80 text-right shadow-inner flex flex-col justify-end min-h-[100px] overflow-hidden">
+                <div id="calcHistory" class="text-xs text-slate-400 font-mono h-5 overflow-hidden"></div>
+                <div id="calcDisplay" class="text-3xl font-bold font-mono tracking-wider text-slate-100 break-words max-h-20 overflow-y-auto">0</div>
+            </div>
+
+            <!-- Keypad Grid -->
+            <div class="grid grid-cols-4 gap-3">
+                <!-- Row 1 -->
+                <button onclick="calcClear()" class="glass-btn text-rose-400 font-bold p-4 rounded-2xl text-lg hover:bg-rose-500/10">AC</button>
+                <button onclick="calcOp('%')" class="glass-btn text-indigo-400 font-semibold p-4 rounded-2xl text-lg">%</button>
+                <button onclick="calcOp('/')" class="glass-btn text-indigo-400 font-semibold p-4 rounded-2xl text-lg">÷</button>
+                <button onclick="calcOp('*')" class="glass-btn text-indigo-400 font-semibold p-4 rounded-2xl text-lg">×</button>
+
+                <!-- Row 2 -->
+                <button onclick="calcNum('7')" class="glass-btn text-slate-200 font-semibold p-4 rounded-2xl text-xl">7</button>
+                <button onclick="calcNum('8')" class="glass-btn text-slate-200 font-semibold p-4 rounded-2xl text-xl">8</button>
+                <button onclick="calcNum('9')" class="glass-btn text-slate-200 font-semibold p-4 rounded-2xl text-xl">9</button>
+                <button onclick="calcOp('-')" class="glass-btn text-indigo-400 font-semibold p-4 rounded-2xl text-lg">-</button>
+
+                <!-- Row 3 -->
+                <button onclick="calcNum('4')" class="glass-btn text-slate-200 font-semibold p-4 rounded-2xl text-xl">4</button>
+                <button onclick="calcNum('5')" class="glass-btn text-slate-200 font-semibold p-4 rounded-2xl text-xl">5</button>
+                <button onclick="calcNum('6')" class="glass-btn text-slate-200 font-semibold p-4 rounded-2xl text-xl">6</button>
+                <button onclick="calcOp('+')" class="glass-btn text-indigo-400 font-semibold p-4 rounded-2xl text-lg">+</button>
+
+                <!-- Row 4 -->
+                <button onclick="calcNum('1')" class="glass-btn text-slate-200 font-semibold p-4 rounded-2xl text-xl">1</button>
+                <button onclick="calcNum('2')" class="glass-btn text-slate-200 font-semibold p-4 rounded-2xl text-xl">2</button>
+                <button onclick="calcNum('3')" class="glass-btn text-slate-200 font-semibold p-4 rounded-2xl text-xl">3</button>
+                <button onclick="calcEquals()" class="row-span-2 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold p-4 rounded-2xl text-2xl flex items-center justify-center shadow-lg shadow-indigo-500/25 active:scale-95 transition-all">=</button>
+
+                <!-- Row 5 -->
+                <button onclick="calcNum('0')" class="col-span-2 glass-btn text-slate-200 font-semibold p-4 rounded-2xl text-xl">0</button>
+                <button onclick="calcNum('.')" class="glass-btn text-slate-200 font-semibold p-4 rounded-2xl text-xl">.</button>
+            </div>
+            <p class="text-center text-xs text-slate-500 mt-4 font-mono">Enter passcode & press '=' to unlock</p>
+        </div>
+
+        <!-- ================= VAULT VIEW ================= -->
+        <div id="vaultView" class="hidden w-full max-w-6xl glass-card rounded-3xl p-4 md:p-8 shadow-2xl border border-slate-700/50 transition-all duration-300">
+            
+            <!-- Vault Controls Toolbar -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-6 border-b border-slate-800">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-100 flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-6 h-6 text-emerald-400"></i>
+                        Encrypted Storage Vault
+                    </h1>
+                    <p class="text-sm text-slate-400">All media and documents are stored securely in your browser session.</p>
+                </div>
+
+                <!-- Drag & Drop Upload trigger area -->
+                <div class="w-full md:w-auto flex items-center gap-3">
+                    <label class="flex-1 md:flex-initial cursor-pointer bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 transition-all active:scale-95">
+                        <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                        <span>Upload Files</span>
+                        <input type="file" id="fileInput" multiple class="hidden" onchange="handleFileSelect(event)">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Upload Drag-and-Drop Zone -->
+            <div id="dropZone" class="mb-6 border-2 border-dashed border-slate-700 hover:border-indigo-500/60 rounded-2xl p-6 text-center bg-slate-900/30 hover:bg-slate-900/60 transition-all cursor-pointer" onclick="document.getElementById('fileInput').click()">
+                <div class="flex flex-col items-center justify-center gap-2">
+                    <div class="p-3 bg-slate-800/80 rounded-full text-indigo-400">
+                        <i data-lucide="folder-plus" class="w-6 h-6"></i>
+                    </div>
+                    <p class="text-sm font-medium text-slate-300">Drag & drop images, videos, or documents here, or click to browse</p>
+                    <p class="text-xs text-slate-500">Supports PNG, JPG, MP4, WEBM, PDF, TXT & more</p>
+                </div>
+            </div>
+
+            <!-- Category Filters -->
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <div class="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-xl border border-slate-800">
+                    <button onclick="filterVault('all')" id="filter-all" class="filter-btn px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition-all">All</button>
+                    <button onclick="filterVault('image')" id="filter-image" class="filter-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">Images</button>
+                    <button onclick="filterVault('video')" id="filter-video" class="filter-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">Videos</button>
+                    <button onclick="filterVault('file')" id="filter-file" class="filter-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">Documents</button>
+                </div>
+
+                <div class="text-xs text-slate-400 font-mono" id="storageStats">
+                    Items: <span id="itemCount">0</span>
+                </div>
+            </div>
+
+            <!-- Gallery Grid Area -->
+            <div id="vaultGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 min-h-[250px]">
+                <!-- Dynamic Content Loaded Here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden flex flex-col items-center justify-center py-16 text-center">
+                <div class="p-4 bg-slate-900/60 rounded-full text-slate-600 mb-3">
+                    <i data-lucide="lock" class="w-10 h-10"></i>
+                </div>
+                <p class="text-slate-400 font-medium">Vault is Empty</p>
+                <p class="text-xs text-slate-500 max-w-xs mt-1">Upload items above to safely store them in this local private vault.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="p-4 text-center text-xs text-slate-600 border-t border-slate-800/40">
+        &copy; Secret Vault Calculator App. Built for private local media storage.
+    </footer>
+
+    <!-- ================= MEDIA PREVIEW MODAL ================= -->
+    <div id="previewModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card max-w-4xl w-full max-h-[90vh] rounded-3xl overflow-hidden flex flex-col border border-slate-700 shadow-2xl">
+            <!-- Modal Header -->
+            <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/60">
+                <div class="flex items-center gap-2 overflow-hidden">
+                    <i id="modalFileTypeIcon" data-lucide="file" class="w-5 h-5 text-indigo-400 flex-shrink-0"></i>
+                    <h3 id="modalFileName" class="font-semibold text-slate-200 text-sm truncate">Filename</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a id="modalDownloadBtn" download href="#" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all" title="Download">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                    </a>
+                    <button onclick="closeModal()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Modal Body Content -->
+            <div id="modalContent" class="p-4 flex-1 flex items-center justify-center overflow-auto bg-slate-950/60 min-h-[300px]">
+                <!-- Injected Preview Content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PASSCODE SETTINGS MODAL ================= -->
+    <div id="passcodeModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card max-w-md w-full rounded-3xl p-6 border border-slate-700 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-slate-100 text-lg flex items-center gap-2">
+                    <i data-lucide="key" class="w-5 h-5 text-indigo-400"></i> Change Passcode
+                </h3>
+                <button onclick="closePasscodeModal()" class="text-slate-400 hover:text-slate-200">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Current Passcode</label>
+                    <input type="password" id="currentPasscodeInput" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 font-mono" placeholder="Enter current passcode">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">New Passcode</label>
+                    <input type="password" id="newPasscodeInput" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 font-mono" placeholder="Enter new passcode (e.g. 1234)">
+                </div>
+                <div id="passcodeError" class="text-xs text-rose-400 hidden"></div>
+                <button onclick="saveNewPasscode()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-600/20">
+                    Update Passcode
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-800 border border-slate-700 text-slate-100 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transition-all duration-300 opacity-0 translate-y-4 pointer-events-none z-50">
+        <i id="toastIcon" data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400"></i>
+        <span id="toastMsg" class="text-sm font-medium">Notification</span>
+    </div>
+
+    <script>
+        /* ================= STATE & CONFIG ================= */
+        let calcInput = '';
+        let currentFilter = 'all';
+        let db = null;
+        const DEFAULT_PASSCODE = '1234';
+
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        /* ================= INDEXED DB STORAGE SETUP ================= */
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('VaultCalculatorDB', 1);
+
+                request.onupgradeneeded = (e) => {
+                    const dbInstance = e.target.result;
+                    if (!dbInstance.objectStoreNames.contains('files')) {
+                        dbInstance.createObjectStore('files', { keyPath: 'id' });
+                    }
+                };
+
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve(db);
+                };
+
+                request.onerror = (e) => {
+                    showToast('Failed to initialize local database storage', 'error');
+                    reject(e);
+                };
+            });
+        }
+
+        /* ================= CALCULATOR LOGIC ================= */
+        function calcNum(num) {
+            calcInput += num;
+            updateCalcDisplay();
+        }
+
+        function calcOp(op) {
+            if (calcInput === '' && op !== '-') return;
+            const lastChar = calcInput.slice(-1);
+            if (['+', '-', '*', '/', '%'].includes(lastChar)) {
+                calcInput = calcInput.slice(0, -1) + op;
+            } else {
+                calcInput += op;
+            }
+            updateCalcDisplay();
+        }
+
+        function calcClear() {
+            calcInput = '';
+            document.getElementById('calcHistory').innerText = '';
+            updateCalcDisplay();
+        }
+
+        function updateCalcDisplay() {
+            const display = document.getElementById('calcDisplay');
+            display.innerText = calcInput || '0';
+        }
+
+        function calcEquals() {
+            const activePasscode = localStorage.getItem('vaultPasscode') || DEFAULT_PASSCODE;
+
+            // SECRET PASSCODE CHECK
+            if (calcInput === activePasscode) {
+                openVault();
+                calcClear();
+                return;
+            }
+
+            // Normal Calculation Processing
+            if (!calcInput) return;
+            try {
+                // Safe calculation replacement for operators
+                let sanitized = calcInput.replace(/%/g, '/100');
+                let result = eval(sanitized);
+
+                document.getElementById('calcHistory').innerText = calcInput + ' =';
+                calcInput = String(result);
+                updateCalcDisplay();
+            } catch (e) {
+                document.getElementById('calcDisplay').innerText = 'Error';
+                calcInput = '';
+            }
+        }
+
+        /* Keyboard listener for calculator */
+        window.addEventListener('keydown', (e) => {
+            const vault = document.getElementById('vaultView');
+            if (!vault.classList.contains('hidden')) return; // Ignore if in vault
+
+            if (e.key >= '0' && e.key <= '9') calcNum(e.key);
+            else if (e.key === '.') calcNum('.');
+            else if (e.key === '+') calcOp('+');
+            else if (e.key === '-') calcOp('-');
+            else if (e.key === '*') calcOp('*');
+            else if (e.key === '/') { e.preventDefault(); calcOp('/'); }
+            else if (e.key === '%') calcOp('%');
+            else if (e.key === 'Enter' || e.key === '=') { e.preventDefault(); calcEquals(); }
+            else if (e.key === 'Escape' || e.key === 'c' || e.key === 'C') calcClear();
+            else if (e.key === 'Backspace') {
+                calcInput = calcInput.slice(0, -1);
+                updateCalcDisplay();
+            }
+        });
+
+        /* ================= VAULT ACCESS CONTROL ================= */
+        function openVault() {
+            document.getElementById('calculatorView').classList.add('hidden');
+            document.getElementById('vaultView').classList.remove('hidden');
+            document.getElementById('lockVaultBtn').classList.remove('hidden');
+            document.getElementById('settingsBtn').classList.remove('hidden');
+            document.getElementById('headerTitle').innerText = 'Vault Gallery';
+            showToast('Secret Vault Unlocked', 'success');
+            loadVaultItems();
+        }
+
+        function lockVault() {
+            document.getElementById('vaultView').classList.add('hidden');
+            document.getElementById('calculatorView').classList.remove('hidden');
+            document.getElementById('lockVaultBtn').classList.add('hidden');
+            document.getElementById('settingsBtn').classList.add('hidden');
+            document.getElementById('headerTitle').innerText = 'Calculator';
+            showToast('Vault Locked', 'info');
+        }
+
+        document.getElementById('lockVaultBtn').addEventListener('click', lockVault);
+
+        /* Passcode Settings */
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            document.getElementById('passcodeError').classList.add('hidden');
+            document.getElementById('currentPasscodeInput').value = '';
+            document.getElementById('newPasscodeInput').value = '';
+            document.getElementById('passcodeModal').classList.remove('hidden');
+        });
+
+        function closePasscodeModal() {
+            document.getElementById('passcodeModal').classList.add('hidden');
+        }
+
+        function saveNewPasscode() {
+            const currentPass = localStorage.getItem('vaultPasscode') || DEFAULT_PASSCODE;
+            const inputCurrent = document.getElementById('currentPasscodeInput').value;
+            const inputNew = document.getElementById('newPasscodeInput').value;
+            const errorDiv = document.getElementById('passcodeError');
+
+            if (inputCurrent !== currentPass) {
+                errorDiv.innerText = 'Current passcode is incorrect.';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            if (!inputNew || inputNew.trim().length === 0) {
+                errorDiv.innerText = 'New passcode cannot be empty.';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            localStorage.setItem('vaultPasscode', inputNew.trim());
+            closePasscodeModal();
+            showToast('Passcode updated successfully', 'success');
+        }
+
+        /* ================= FILE & MEDIA MANAGEMENT ================= */
+
+        // Handle File Drag and Drop
+        const dropZone = document.getElementById('dropZone');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('border-indigo-500', 'bg-slate-900/80'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('border-indigo-500', 'bg-slate-900/80'), false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        });
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            if (!files || files.length === 0) return;
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    let category = 'file';
+                    if (file.type.startsWith('image/')) category = 'image';
+                    else if (file.type.startsWith('video/')) category = 'video';
+
+                    const item = {
+                        id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        category: category,
+                        data: e.target.result,
+                        timestamp: new Date().toLocaleDateString()
+                    };
+
+                    saveToDB(item);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function saveToDB(item) {
+            if (!db) return;
+            const transaction = db.transaction(['files'], 'readwrite');
+            const store = transaction.objectStore('files');
+            const request = store.add(item);
+
+            request.onsuccess = () => {
+                showToast(`Saved: ${item.name}`, 'success');
+                loadVaultItems();
+            };
+
+            request.onerror = () => {
+                showToast('Failed to save file', 'error');
+            };
+        }
+
+        function loadVaultItems() {
+            if (!db) return;
+            const transaction = db.transaction(['files'], 'readonly');
+            const store = transaction.objectStore('files');
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                const items = request.result || [];
+                renderVaultGrid(items);
+            };
+        }
+
+        function deleteItem(id, name, event) {
+            event.stopPropagation();
+            if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+
+            const transaction = db.transaction(['files'], 'readwrite');
+            const store = transaction.objectStore('files');
+            const request = store.delete(id);
+
+            request.onsuccess = () => {
+                showToast('Item deleted', 'info');
+                loadVaultItems();
+            };
+        }
+
+        function filterVault(category) {
+            currentFilter = category;
+            
+            // Toggle active state on filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white');
+                btn.classList.add('text-slate-400');
+            });
+
+            const activeBtn = document.getElementById(`filter-${category}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-indigo-600', 'text-white');
+                activeBtn.classList.remove('text-slate-400');
+            }
+
+            loadVaultItems();
+        }
+
+        /* Render items in the Vault Grid */
+        function renderVaultGrid(items) {
+            const grid = document.getElementById('vaultGrid');
+            const emptyState = document.getElementById('emptyState');
+            grid.innerHTML = '';
+
+            const filteredItems = currentFilter === 'all' 
+                ? items 
+                : items.filter(item => item.category === currentFilter);
+
+            document.getElementById('itemCount').innerText = filteredItems.length;
+
+            if (filteredItems.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filteredItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'group relative glass-card rounded-2xl overflow-hidden border border-slate-800 hover:border-slate-600 transition-all cursor-pointer flex flex-col justify-between h-44';
+                
+                // Build dynamic thumbnail view depending on media category
+                let mediaThumbnail = '';
+                if (item.category === 'image') {
+                    mediaThumbnail = `<img src="${item.data}" alt="${item.name}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">`;
+                } else if (item.category === 'video') {
+                    mediaThumbnail = `
+                        <div class="w-full h-full bg-slate-900 flex items-center justify-center text-indigo-400 relative">
+                            <i data-lucide="video" class="w-10 h-10"></i>
+                            <div class="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i data-lucide="play-circle" class="w-12 h-12 text-white"></i>
+                            </div>
+                        </div>`;
+                } else {
+                    mediaThumbnail = `
+                        <div class="w-full h-full bg-slate-900 flex flex-col items-center justify-center text-slate-400 p-2">
+                            <i data-lucide="file-text" class="w-10 h-10 text-indigo-400 mb-1"></i>
+                            <span class="text-[10px] font-mono text-slate-500 uppercase">${item.name.split('.').pop() || 'file'}</span>
+                        </div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="relative w-full h-28 overflow-hidden bg-slate-950">
+                        ${mediaThumbnail}
+                        <button onclick="deleteItem('${item.id}', '${item.name.replace(/'/g, "\\'")}', event)" class="absolute top-2 right-2 p-1.5 rounded-lg bg-slate-950/80 text-rose-400 opacity-0 group-hover:opacity-100 hover:bg-rose-600 hover:text-white transition-all" title="Delete">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                    <div class="p-2.5 bg-slate-900/80 border-t border-slate-800/80 flex items-center justify-between">
+                        <div class="truncate pr-1">
+                            <p class="text-xs font-semibold text-slate-200 truncate" title="${item.name}">${item.name}</p>
+                            <p class="text-[10px] text-slate-500">${formatBytes(item.size)}</p>
+                        </div>
+                    </div>
+                `;
+
+                card.addEventListener('click', () => openPreviewModal(item));
+                grid.appendChild(card);
+            });
+
+            lucide.createIcons();
+        }
+
+        /* ================= PREVIEW MODAL LOGIC ================= */
+        function openPreviewModal(item) {
+            const modal = document.getElementById('previewModal');
+            const modalContent = document.getElementById('modalContent');
+            const modalFileName = document.getElementById('modalFileName');
+            const modalDownloadBtn = document.getElementById('modalDownloadBtn');
+            const modalFileTypeIcon = document.getElementById('modalFileTypeIcon');
+
+            modalFileName.innerText = item.name;
+            modalDownloadBtn.href = item.data;
+            modalDownloadBtn.download = item.name;
+
+            modalContent.innerHTML = '';
+
+            if (item.category === 'image') {
+                modalFileTypeIcon.setAttribute('data-lucide', 'image');
+                modalContent.innerHTML = `<img src="${item.data}" alt="${item.name}" class="max-h-[70vh] max-w-full rounded-lg object-contain">`;
+            } else if (item.category === 'video') {
+                modalFileTypeIcon.setAttribute('data-lucide', 'video');
+                modalContent.innerHTML = `<video src="${item.data}" controls autoplay class="max-h-[70vh] max-w-full rounded-lg"></video>`;
+            } else {
+                modalFileTypeIcon.setAttribute('data-lucide', 'file-text');
+                modalContent.innerHTML = `
+                    <div class="flex flex-col items-center justify-center p-8 text-center">
+                        <i data-lucide="file-check" class="w-16 h-16 text-indigo-400 mb-4"></i>
+                        <p class="text-slate-300 font-medium mb-1">${item.name}</p>
+                        <p class="text-xs text-slate-500 mb-6">${formatBytes(item.size)} • ${item.type || 'Unknown Format'}</p>
+                        <a href="${item.data}" download="${item.name}" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all">
+                            <i data-lucide="download" class="w-4 h-4"></i> Download File
+                        </a>
+                    </div>`;
+            }
+
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('previewModal');
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = ''; // Clear video or heavy elements
+            modal.classList.add('hidden');
+        }
+
+        /* Utility Helper Functions */
+        function formatBytes(bytes, decimals = 1) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = message;
+            
+            if (type === 'error') {
+                toastIcon.setAttribute('data-lucide', 'alert-circle');
+                toastIcon.className = 'w-5 h-5 text-rose-400';
+            } else if (type === 'info') {
+                toastIcon.setAttribute('data-lucide', 'info');
+                toastIcon.className = 'w-5 h-5 text-indigo-400';
+            } else {
+                toastIcon.setAttribute('data-lucide', 'check-circle-2');
+                toastIcon.className = 'w-5 h-5 text-emerald-400';
+            }
+
+            lucide.createIcons();
+
+            toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+            }, 3000);
+        }
+
+        /* App Initialization */
+        window.addEventListener('load', () => {
+            initDB();
+        });
+    </script>
+</body>
+</html>
