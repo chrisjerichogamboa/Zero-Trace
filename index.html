@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculator</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ================= CALCULATOR VIEW ================= -->
+  <main id="calculator-view" class="app-container">
+    <div class="calc-chassis">
+      <div class="calc-top-bar">
+        <div class="calc-brand">
+          <span class="dot"></span>
+          <span>CALC-X</span>
+        </div>
+        <button id="hint-btn" class="icon-btn" title="PIN Hint">
+          <i class="fa-regular fa-circle-question"></i>
+        </button>
+      </div>
+
+      <!-- Display Screen -->
+      <div class="calc-screen">
+        <div id="calc-history" class="calc-history"></div>
+        <div id="calc-display" class="calc-display">0</div>
+      </div>
+
+      <!-- Keypad Grid -->
+      <div class="calc-keypad">
+        <button class="key key-func" data-action="clear">AC</button>
+        <button class="key key-func" data-action="backspace"><i class="fa-solid fa-delete-left"></i></button>
+        <button class="key key-func" data-action="percent">%</button>
+        <button class="key key-op" data-value="/">÷</button>
+
+        <button class="key key-num" data-value="7">7</button>
+        <button class="key key-num" data-value="8">8</button>
+        <button class="key key-num" data-value="9">9</button>
+        <button class="key key-op" data-value="*">×</button>
+
+        <button class="key key-num" data-value="4">4</button>
+        <button class="key key-num" data-value="5">5</button>
+        <button class="key key-num" data-value="6">6</button>
+        <button class="key key-op" data-value="-">−</button>
+
+        <button class="key key-num" data-value="1">1</button>
+        <button class="key key-num" data-value="2">2</button>
+        <button class="key key-num" data-value="3">3</button>
+        <button class="key key-op" data-value="+">+</button>
+
+        <button class="key key-num key-zero" data-value="0">0</button>
+        <button class="key key-num" data-value=".">.</button>
+        <button class="key key-eq" data-action="equals">=</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ================= SECRET VAULT VIEW ================= -->
+  <section id="vault-view" class="vault-container hidden">
+    <!-- Top Header -->
+    <header class="vault-header">
+      <div class="vault-title">
+        <div class="shield-badge"><i class="fa-solid fa-shield-halved"></i></div>
+        <div>
+          <h1>Private Vault</h1>
+          <p class="subtitle">Local Encrypted Storage (IndexedDB)</p>
+        </div>
+      </div>
+
+      <div class="vault-actions">
+        <button id="change-pin-btn" class="btn btn-secondary">
+          <i class="fa-solid fa-key"></i> <span>Change PIN</span>
+        </button>
+        <button id="lock-vault-btn" class="btn btn-danger">
+          <i class="fa-solid fa-lock"></i> <span>Lock</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Vault Body -->
+    <div class="vault-content">
+      <!-- Upload Zone & Stats -->
+      <div class="vault-controls">
+        <div id="drop-zone" class="drop-zone">
+          <input type="file" id="file-input" multiple accept="image/*,video/*,.pdf,.doc,.docx,.txt,.zip,.mp3,.csv,.xlsx" hidden />
+          <div class="drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+          <div class="drop-text">
+            <strong>Click to upload</strong> or drag and drop files here
+            <span>Supports Photos, Videos, PDFs, Documents & Archives</span>
+          </div>
+        </div>
+
+        <div class="storage-card">
+          <div class="storage-header">
+            <span>Vault Storage</span>
+            <span id="file-count-badge">0 Items</span>
+          </div>
+          <div id="storage-size" class="storage-size">0.00 MB</div>
+          <p class="storage-note">Stored privately on your device browser.</p>
+        </div>
+      </div>
+
+      <!-- Filter Tabs & Search -->
+      <div class="filter-bar">
+        <div class="filter-tabs">
+          <button class="tab active" data-filter="all">All Files</button>
+          <button class="tab" data-filter="image"><i class="fa-regular fa-image"></i> Photos</button>
+          <button class="tab" data-filter="video"><i class="fa-solid fa-film"></i> Videos</button>
+          <button class="tab" data-filter="document"><i class="fa-regular fa-file-lines"></i> Documents</button>
+        </div>
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="search-input" placeholder="Search files..." />
+        </div>
+      </div>
+
+      <!-- Files Grid -->
+      <div id="files-grid" class="files-grid"></div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="empty-state hidden">
+        <div class="empty-icon"><i class="fa-solid fa-folder-open"></i></div>
+        <h3>No files in this view</h3>
+        <p>Upload photos, videos, or sensitive documents to hide them behind your calculator.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MEDIA PREVIEW MODAL ================= -->
+  <div id="preview-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-box preview-box">
+      <div class="modal-header">
+        <h3 id="preview-title">Filename.jpg</h3>
+        <div class="modal-header-actions">
+          <button id="preview-download-btn" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-download"></i> Download
+          </button>
+          <button id="close-preview-btn" class="icon-btn">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+      <div id="preview-body" class="preview-body"></div>
+    </div>
+  </div>
+
+  <!-- ================= CHANGE PIN MODAL ================= -->
+  <div id="pin-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-box pin-box">
+      <div class="modal-header">
+        <h3>Change Vault Passcode</h3>
+        <button id="close-pin-btn" class="icon-btn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form id="pin-form" class="pin-form">
+        <p class="pin-desc">Enter a 4 to 8 digit numeric PIN. Type this PIN on the calculator and press <strong>=</strong> to unlock your vault.</p>
+        <div class="form-group">
+          <label for="new-pin-input">New Passcode (Digits Only)</label>
+          <input type="password" id="new-pin-input" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" placeholder="e.g., 2580" required />
+        </div>
+        <div class="form-group">
+          <label for="confirm-pin-input">Confirm Passcode</label>
+          <input type="password" id="confirm-pin-input" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" placeholder="Re-enter PIN" required />
+        </div>
+        <div id="pin-error" class="error-text hidden"></div>
+        <div class="modal-footer">
+          <button type="button" id="cancel-pin-btn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save New PIN</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Custom JS -->
+  <script src="script.js"></script>
+</body>
+</html>
